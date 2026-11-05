@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 <!--
 Migrated from "Lecture 01 (05_10).pdf".
 Schedule slide below has been corrected per course-restructuring discussion:

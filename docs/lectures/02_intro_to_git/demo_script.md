@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Demo: Git & GitHub
 
 ## Basics (via command line)

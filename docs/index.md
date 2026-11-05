@@ -1,7 +1,4 @@
 # Open Source Software Development for Astronomy
 
-```{toctree}
-:maxdepth: 1
-
-lectures/01_motivation/slides
-```
+The [repository README](https://github.com/prashjet/oss4astro-course#readme)
+is the course entry point, with the schedule and project requirements.

@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Introduction to Git & GitHub
 
 Prashin Jethwa

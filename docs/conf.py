@@ -1,4 +1,4 @@
-# Minimal Sphinx scaffold. Extended as the site is built out.
+from pathlib import Path
 
 project = "Open Source Software Development for Astronomy"
 
@@ -16,6 +16,12 @@ myst_enable_extensions = [
 ]
 
 exclude_patterns = ["_build"]
+# Keep empty lecture scaffolds out of the published site until written.
+exclude_patterns += [
+    path.relative_to(Path(__file__).parent).as_posix()
+    for path in Path(__file__).parent.rglob("*.md")
+    if not path.read_text(encoding="utf-8").strip()
+]
 
 html_theme = "furo"
 

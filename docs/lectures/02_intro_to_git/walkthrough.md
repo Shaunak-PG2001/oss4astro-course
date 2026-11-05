@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Demo: Git & GitHub
 
 Demonstration walkthrough for the lecture [Git & GitHub](https://prashjet.github.io/oss4astro-course/present/lectures/02_intro_to_git/slides.html).
@@ -13,9 +17,20 @@ Sign in to GitHub and create a new repository. A few choices matter here, and yo
 
 Clone it to your machine to create your local repository:
 
+Name the repository `sequence` so the directory name below matches. Before
+the first push, follow the [GitHub credentials](#github-credentials) steps below.
+
 ```
 git clone <repo-url>
 cd sequence
+```
+
+Git also needs an author identity for commits; if this is your first use, run
+these commands inside the cloned repository with your own details:
+
+```sh
+git config user.name "Your Name"
+git config user.email "your-email@example.com"
 ```
 
 ## Add, commit, push
@@ -84,7 +99,29 @@ Here, git has detected that there are changes to your local version of the repo 
 
 Sometimes, there will be a conflict between an update to a file on the remote repo and an update to a file on your local machine. In that case, git isn't sure which change to keep, and a conflict is raised.
 
-To manufacture a conflict, we will create two local branches (`change1` and `change2`), editing the README in both, then raise PRs to merge both into main. In the second PR we'll see the warning:
+To manufacture a conflict, start with a clean, up-to-date `main`. Create both
+branches from that same commit, replacing the same existing README line with
+different text:
+
+```sh
+git checkout main
+git pull
+git branch change1
+git branch change2
+git checkout change1
+# Replace the first README line with: # Sequence: version one
+git add README.md
+git commit -m "Change README title to version one"
+git push -u origin change1
+git checkout change2
+# Replace the first README line with: # Sequence: version two
+git add README.md
+git commit -m "Change README title to version two"
+git push -u origin change2
+```
+
+Open PRs for both branches, then merge `change1` first. In the second PR we'll
+see the warning:
 
 ![GitHub can't automatically merge the second PR](figs/pr_merge_conflict_warning.png)
 
@@ -107,13 +144,15 @@ We now resolve the conflict by:
 
 ### 2. locally: merging `main` back into the feature branch 
 
-Let's re-create the same conflict scenario with pull requests for two conflicting branches `change1` and `change2`. We merge `change1` into main, and again see that `change2` cannot be merged into main. This time, we'll resolve the conflict locally, by
+For a second demonstration, repeat the steps above using fresh branch names
+`change3` and `change4`, starting from the updated `main`. Merge `change3` on
+GitHub, then resolve the conflict in `change4` locally:
 
 ```
 git checkout main       
 git pull                # get local main up to date with remote
-git checkout change2
-git merge main          # merge the local main into local `change2` branch
+git checkout change4
+git merge main          # merge the local main into local `change4` branch
 ```
 
 The conflict markers and options for how to resolve them look similar in VSCode:
@@ -155,7 +194,12 @@ This tells `git pull` to resolve divergences by merging - i.e. as we did in both
 
 Every change so far has been to your own project, where you have permission to write directly to main. When contributing to someone else's project, this isn't possible. Your changes have to go through a PR and be accepted by the project owners.
 
-The process to raise a PR for an external project is mostly similar to above, with one difference. You start by *forking* the repository, which creates a local version where the *upstream* repository is marked as the relevant place to direct your PRs. 
+The process starts by *forking* the repository on GitHub. This creates a copy
+under your GitHub account. Then *clone your fork* to work locally. Push your
+branch to your fork and open a PR targeting the original (*upstream*) repository.
+A fork is on GitHub; a clone is on your computer. Cloning your fork sets
+`origin` to your fork; it does not automatically add a local remote named
+`upstream`.
 
 [first-contributions](https://github.com/firstcontributions/first-contributions) is a simple open-source project built just to demonstrate this - check it out and follow the instructions there to make your first open-source contribution. 
 
@@ -165,6 +209,7 @@ GitHub issues is a convenient place to record any future changes that need to be
 - is a collaborator on your repository (GitHub → Settings → Collaborators),
 - has commented on the issue.
 
+(github-credentials)=
 ## GitHub credentials
 
 Cloning a public repo needs no authentication, but `git push` (or cloning a private repo) does. If you haven't set anything up, you'll be prompted for credentials, and typing your actual GitHub password will fail with:
