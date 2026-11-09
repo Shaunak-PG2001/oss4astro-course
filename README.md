@@ -13,7 +13,7 @@ The aim of this course (inspired by the [Code/Astro](https://semaphorep.github.i
 | 05/10 | Motivation | [link](https://prashjet.github.io/oss4astro-course/present/lectures/01_motivation/slides.html) | n/a |
 | 12/10 | Discuss Project Ideas | n/a | n/a |
 | 19/10 | Version control and collaboration | [link](https://prashjet.github.io/oss4astro-course/present/lectures/02_intro_to_git/slides.html) | [link](https://prashjet.github.io/oss4astro-course/lectures/02_intro_to_git/walkthrough.html) |
-| 09/11 | Environment and dependency management | ... | ... |
+| 09/11 | Environment and dependency management | [link](https://prashjet.github.io/oss4astro-course/present/lectures/03_environment_and_dependencies/slides.html) | [link](https://prashjet.github.io/oss4astro-course/lectures/03_environment_and_dependencies/walkthrough.html) |
 | 16/11 | Documentation | ... | ... |
 | 23/11 | Testing | ... | ... |
 | 30/11 | Code quality: linting, formatting, and type hints | ... | ... |
