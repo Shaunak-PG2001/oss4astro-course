@@ -244,22 +244,14 @@ For a packaged library, `uv sync` installs the project itself in **editable mode
 
 ### Installation without uv
 
-Another user can clone the repository and, in their own Python environment, run:
+Having created an **importable package**, another user can clone the repository and, in their own Python environment, run:
 
 ```sh
 python -m pip install .
 python -c "from sequence import even; print(even(10))"
 ```
 
-`pip` uses the project's standard build metadata and resolves its runtime dependencies independently. It does **not** read `uv.lock` or install the development dependency group. Do not mix this pip installation into the `.venv` managed by uv during the demo. For a separate test on macOS/Linux, use an isolated environment that has pip available:
-
-```sh
-python3.12 -m venv /tmp/sequence-pip-check
-/tmp/sequence-pip-check/bin/python -m pip install .
-/tmp/sequence-pip-check/bin/python -c "from sequence import even; print(even(10))"
-```
-
-Choose an unused temporary path; on Windows the interpreter is under `Scripts/`. Installation from a clone does **not** mean the package has been published to PyPI. Publishing is a separate topic.
+`pip` uses the project's standard build metadata and resolves its runtime dependencies independently. It does **not** read `uv.lock` or install the development dependency group.
 
 ## Add a development dependency: Sphinx
 
