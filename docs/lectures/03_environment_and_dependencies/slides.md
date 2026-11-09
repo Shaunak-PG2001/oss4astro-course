@@ -110,15 +110,13 @@ A package manager helps you install and use software. But what happens when you'
 
 ## Live Demo
 
-First: a reproducible application (`uv init --no-package`). Then: a new installable library (`uv init --lib`) on a fresh branch.
-
 Instructions to reproduce can be found [here](https://prashjet.github.io/oss4astro-course/lectures/03_environment_and_dependencies/walkthrough.html).
 
 ## Does developing with `uv` mean everyone must use `uv`?
 
 **No.** In the second part of the demo, we started a **new installable library** from the original Git commit.
 
-- `uv init --lib --name sequence` generated an importable `src/sequence/` package.
+- `uv init --lib` generated an importable `src/sequence/` package.
 - The generated `[build-system]` selects `uv_build` as a standard build backend; no Hatchling substitution is needed.
 - From a clone, users can run `pip install .` in their own environment,
   independently of uv; runtime dependencies are installed too.
@@ -127,7 +125,7 @@ Instructions to reproduce can be found [here](https://prashjet.github.io/oss4ast
 - Installing from source and publishing to PyPI are separate steps.
 
 **For a new final project, start with `uv init --lib my-project`.**
-We used a separate Git worktree and fresh branch to keep the earlier application demo intact.
+We started again from the original commit on a fresh branch.
 
 ## Runtime and development dependencies
 

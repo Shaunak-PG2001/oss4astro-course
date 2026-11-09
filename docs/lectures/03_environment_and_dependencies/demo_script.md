@@ -13,8 +13,8 @@ orphan: true
 
 ## Initialize / select Python
 
-- `uv init --no-package` (in the existing Git checkout): explicitly create a non-installable application.
-- Inspect `pyproject.toml`, `.python-version`, starter `main.py`. The `--no-package` option makes the first stage independent of changes to uv’s default template.
+- `uv init` (in the existing Git checkout): initialize the application project.
+- Inspect `pyproject.toml`, `.python-version`, starter `main.py`.
 - **Supported versions** (`requires-python`) ≠ **local interpreter** (`.python-version`). Don't assume the initial Python version is 3.9; inspect what uv selected.
 - `uv python pin 3.12` — inspect changed pin; `requires-python` is unchanged.
 - Pin must satisfy `requires-python`. Only claim older-version compatibility if code and dependencies support it.
@@ -70,19 +70,17 @@ print(even(10))
 
 ## Package: start again as an installable library
 
-- **Transition:** We have reproduced an application. Now start afresh from the **same original commit**, but use the library template. We are **not converting** the first project.
-- Keep the application demo checkout intact. From its `sequence/` directory, create a second Git worktree and a new branch:
+- Let's start again from a fresh branch at the original commit, this time initializing a library.
+- Save the uncommitted application-demo changes before switching branches:
 
 ```sh
-git worktree add -b lecture-03-library ../sequence-library 4195620
-cd ../sequence-library
-uv init --lib --name sequence
+git stash push -u -m "lecture-03 application demo"
+git switch -c lecture-03-library 4195620
+uv init --lib
 ```
 
-- `git worktree` gives us a separate working directory on a fresh branch of the **same GitHub repository**. The first demo's uncommitted work is not lost.
-- `--name sequence` matters because the new directory is named `sequence-library`: the **distribution and import package** should still be called `sequence`.
 - Inspect the generated `pyproject.toml`, `.python-version`, `README.md`, and `src/sequence/__init__.py` (exact starter files may vary by uv version).
-- **What is new with `--lib`?** `src/sequence/` holds importable code; `[build-system]` configures a build backend; the project itself can be installed. There is no need for a standalone `main.py`.
+- **What is new with `--lib`?** Unlike the first `uv init`, this explicitly creates a library: `src/sequence/` holds importable code, `[build-system]` configures a build backend, and the project itself is installable. There is no standalone `main.py`.
 - Inspect the actual generated `[build-system]`. Current uv uses `uv_build`, e.g.:
 
 ```toml

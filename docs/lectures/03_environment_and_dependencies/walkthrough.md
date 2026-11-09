@@ -23,13 +23,13 @@ git switch -c lecture-03 4195620
 If your project directory already exists, enter it and run:
 
 ```sh
-uv init --no-package
+uv init
 ```
 
 Or create a new project directory:
 
 ```sh
-uv init --no-package my-project
+uv init my-project
 cd my-project
 ```
 
@@ -37,13 +37,12 @@ Useful initialization options:
 
 - `uv init --python 3.12`: select Python 3.12 at initialization.
 - `uv init --bare`: create minimal project metadata without starter files.
-- `uv init --lib`: initialize an installable library with a package structure; recommended for new final projects. We demonstrate this separately after reproducing the application.
-- `uv init --no-package`: explicitly initialize a non-packaged application; used in the first part of this walkthrough.
+- `uv init`: explicitly initialize a non-packaged application; used in the first part of this walkthrough.
 - `uv init --name my-package`: choose a name independent of the directory.
 
 Options can be combined, e.g. `uv init --python 3.12 my-project`. Use `uv init --help` for more.
 
-Inspect the files from `uv init --no-package`:
+Inspect the files from `uv init`:
 
 - **`pyproject.toml`**: project metadata, supported Python versions, direct dependencies.
 - **`.python-version`**: interpreter selection for local development.
@@ -174,26 +173,24 @@ Cached packages make recreation fast; this is not a cold-cache download benchmar
 
 We have demonstrated how to reproduce an **application**. Now we will initialize a **new, installable library**, rather than restructure the first project. We will start from the **same original Git commit** on a fresh branch of the existing GitHub repository.
 
-### Create a separate worktree and branch
+### Start from a fresh branch
 
-From the `sequence/` checkout used in the first part:
+From the `sequence/` checkout used in the first part, save the uncommitted demo files and start again from the original commit:
 
 ```sh
-git worktree add -b lecture-03-library ../sequence-library 4195620
-cd ../sequence-library
-uv init --lib --name sequence
+git stash push -u -m "lecture-03 application demo"
+git switch -c lecture-03-library 4195620
+uv init --lib
 ```
 
-`git worktree` creates a second checkout of the same repository. It lets us keep the application demo intact, including uncommitted work, while beginning again from the original commit. The branch name must be unused; if you repeat the walkthrough, choose a different branch and directory or clean up the old worktree first.
-
-We specify `--name sequence` because the new checkout directory is called `sequence-library`, but we want the Python distribution and import package to be named `sequence`. For a completely new project you can simply run `uv init --lib my-project`.
+The stash preserves the first demo's uncommitted changes. The new branch starts at the original commit; `uv init --lib` initializes the library in this checkout.
 
 ### What's new with `--lib`?
 
 Inspect the generated files. A typical layout is:
 
 ```text
-sequence-library/
+sequence/
 ├── pyproject.toml
 ├── README.md
 ├── .python-version
@@ -202,7 +199,7 @@ sequence-library/
         └── __init__.py
 ```
 
-Unlike the non-packaged application, this template creates an **importable package** under `src/` and a **`[build-system]` section** in `pyproject.toml`. A standalone `main.py` is not needed. The `src/` layout keeps importable code separate from repository-level scripts and configuration.
+Unlike the first application initialization, `--lib` explicitly creates an **importable package** under `src/` and a **`[build-system]` section** in `pyproject.toml`. A standalone `main.py` is not needed. The `src/` layout keeps importable code separate from repository-level scripts and configuration.
 
 Inspect the `[build-system]` section that your version of uv generated. For example:
 
