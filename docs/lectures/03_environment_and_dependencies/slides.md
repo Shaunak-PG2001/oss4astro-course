@@ -33,7 +33,6 @@ A **package manager** is a tool for installing and managing software packages,
 e.g. `pip` for Python.
 
 They handle the following tasks:
-
 - **Dependency identification:** read declared requirements and package metadata
   to identify direct and transitive dependencies — not inspect your source code
 - **Dependency resolution:** find mutually compatible versions
@@ -61,10 +60,10 @@ A v2 ── requires C >= 2
 B    ── requires C < 2
 ```
 
-- This is a **constraint-satisfaction problem**
-- Suppose the resolver first tries A v2: its requirement conflicts with B
-- It **backtracks** and selects A v1 instead; both now allow C < 2
-- If no compatible combination exists, resolution fails
+- This is a **constraint-satisfaction problem**.
+- Suppose the resolver first tries A v2: its requirement conflicts with B.
+- It **backtracks** and selects A v1 instead; both now allow C < 2.
+- If no compatible combination exists, resolution fails.
 
 ## `uv` is an exceptionally fast Python package manager
 
@@ -76,7 +75,6 @@ B    ── requires C < 2
 
 Lockfile generation is a resolution proxy, not a resolver-only measurement.
 Warm-cache installs recreate the environment between runs. Seconds; lower is better.
-
 [OpenTeams, April 2026](https://openteams.com/engineering-blog/benchmark-python-package-managers/):
 ~25 direct dependencies; median of two runs on Rocky Linux, x86_64.
 Results depend on workload and hardware; package builds differ across ecosystems.
@@ -112,40 +110,37 @@ A package manager helps you install and use software. But what happens when you'
 
 ## Live Demo
 
-Using the `uv` package and project manager.
+First: a reproducible application (`uv init --no-package`). Then: a new installable library (`uv init --lib`) on a fresh branch.
 
 Instructions to reproduce can be found [here](https://prashjet.github.io/oss4astro-course/lectures/03_environment_and_dependencies/walkthrough.html).
 
-
-## From package management to reproducible projects
-
-| Requirement | `uv` provides |
-|---|---|
-| **Declare** | `uv add` / `uv remove` — manage dependencies in `pyproject.toml` |
-| **Isolate** | `.venv` — separate project environment |
-| **Execute** | `uv run` — synchronize the environment and execute code |
-| **Reproduce** | `uv.lock` and `uv sync` — recreate resolved dependencies |
-
-**The environment is disposable; the project specification and lockfile are what we preserve and share.**
-
-`uv` integrates package management, environment management, and project execution into one workflow.
-
-
 ## Does developing with `uv` mean everyone must use `uv`?
 
-**No.** Python projects use standard packaging metadata.
+**No.** In the second part of the demo, we started a **new installable library** from the original Git commit.
 
-- `pyproject.toml` is a standard Python project configuration file.
-- A properly packaged project can be installed with other tools, including `pip`.
-- For example: `pip install .`
-- Other package managers read the declared dependencies and resolve them independently.
-- `uv.lock` is specific to `uv`; `pip` does not use it.
+- `uv init --lib --name sequence` generated an importable `src/sequence/` package.
+- The generated `[build-system]` selects `uv_build` as a standard build backend; no Hatchling substitution is needed.
+- From a clone, users can run `pip install .` in their own environment,
+  independently of uv; runtime dependencies are installed too.
+- `pip` resolves requirements independently; it does not use `uv.lock` or install
+  the development group by default.
+- Installing from source and publishing to PyPI are separate steps.
 
-**Using `uv` to develop a project doesn't force others to use `uv` to install it.**
+**For a new final project, start with `uv init --lib my-project`.**
+We used a separate Git worktree and fresh branch to keep the earlier application demo intact.
+
+## Runtime and development dependencies
+
+- **Runtime dependencies** are needed by the program itself (e.g. NumPy).
+- **Development dependencies** support work on the project (e.g. Sphinx for documentation).
+- `uv add --dev sphinx` records Sphinx in the `dev` dependency group.
+- `uv run` and `uv sync` include the `dev` group by default; `--no-dev` excludes it.
+
+**Next lecture:** using Sphinx to build documentation.
 
 ## What exactly is `uv.lock`?
 
-`pyproject.toml` declares **requirements**; `uv.lock` records **resolved dependencies**.
+`pyproject.toml` declares **requirements**; `uv.lock` records **a resolution**.
 
 | `pyproject.toml` | `uv.lock` |
 |---|---|
@@ -154,12 +149,13 @@ Instructions to reproduce can be found [here](https://prashjet.github.io/oss4ast
 | Python compatibility requirements | Python/platform-specific alternatives |
 | Human-maintained | Automatically generated |
 
-- `uv.lock` is a **universal lockfile**: it can describe resolutions for multiple Python versions and operating systems.
-- It may contain several versions of the same package, with conditions specifying where each applies.
+- `uv.lock` is a **universal lockfile**: it can resolve for multiple Python versions and operating systems.
+- The same package can appear at different versions, with conditions specifying where each applies.
+- A single version may also have multiple platform-specific wheels.
 - `uv sync` installs the appropriate locked distributions for the current environment.
 - Commit `uv.lock` to Git for reproducible development.
 
-**The lockfile records a resolution, not just what's installed on your computer.**
+**A lockfile is not simply a list of what's installed on your computer.**
 
 ## Semantic versioning: what do version numbers mean?
 
@@ -171,10 +167,9 @@ A common convention is **Semantic Versioning (SemVer)**:
 - **MINOR** (`2.4 → 2.5`): backward-compatible new functionality.
 - **PATCH** (`2.4.1 → 2.4.2`): backward-compatible bug fixes.
 
-Under SemVer, software depending on version `2.4.1` should generally remain compatible with later `2.x` releases.
+For **stable releases (1.0.0 onward)**, later versions within the same major series should preserve compatibility under SemVer. Before 1.0.0, the public API may change freely.
 
 But:
-
 - Not all Python packages follow SemVer.
 - Version numbers are conventions and promises, not guarantees of compatibility.
 - Dependency resolvers do not automatically enforce SemVer rules.
@@ -195,12 +190,36 @@ Python uses **PEP 440** to define version ordering and dependency version specif
 
 - `>=2.0` does **not** imply `<3`, even if a package follows SemVer.
 - Package authors explicitly declare the version ranges they support.
-- Dependency resolvers combine these constraints across all direct and transitive dependencies.
+- Resolvers combine constraints from direct and transitive dependencies.
 
-Example:
-
-- Package A requires `numpy>=2.0`
-- Package B requires `numpy<2.2`
-- Both can be satisfied by a NumPy version in `>=2.0,<2.2`.
+Example: A requires `numpy>=2.0`, B requires `numpy<2.2`; a compatible solution lies in `>=2.0,<2.2`.
 
 **SemVer helps authors decide which versions are compatible. PEP 440 tells the resolver which versions are allowed.**
+
+## From package management to reproducible projects
+
+| Requirement | `uv` provides |
+|---|---|
+| **Declare** | `uv add` / `uv remove` — manage dependencies in `pyproject.toml` |
+| **Isolate** | `.venv` — separate project environment |
+| **Execute** | `uv run` — synchronize the environment and execute code |
+| **Reproduce** | `uv.lock` and `uv sync` — recreate resolved dependencies |
+| **Package / Distribute** | `src/` and `[build-system]` — create an installable package |
+
+**The environment is disposable; the project specification and lockfile are what we preserve and share.**
+
+`uv` integrates development and package installation; standard build metadata keeps the package usable with other installers.
+
+## New project requirements: environments & dependencies
+
+Your project should now:
+
+- Be an **installable Python package**, with `[build-system]` in `pyproject.toml`.
+- Install from a fresh clone with `pip install .`, independently of uv.
+- Declare runtime dependencies separately from development dependencies.
+- Commit a development lockfile; keep `.venv` out of Git.
+- Document installation and execution in the README.
+
+Recommended: `uv init --lib` for new projects; equivalent workflows are welcome.
+
+See [Project Requirements](https://github.com/prashjet/oss4astro-course/blob/main/project_requirement.md) for the full list.

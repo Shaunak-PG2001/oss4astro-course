@@ -13,19 +13,19 @@ orphan: true
 
 ## Initialize / select Python
 
-- `uv init`
-- Inspect `pyproject.toml`, `.python-version`, starter `main.py`.
-- **Supported versions** (`requires-python`) ≠ **local interpreter** (`.python-version`).
-- `uv python pin 3.12` — inspect changed pin; requirements unchanged.
-- Pin must satisfy `requires-python`; adjust minimum only if code supports it.
+- `uv init --no-package` (in the existing Git checkout): explicitly create a non-installable application.
+- Inspect `pyproject.toml`, `.python-version`, starter `main.py`. The `--no-package` option makes the first stage independent of changes to uv’s default template.
+- **Supported versions** (`requires-python`) ≠ **local interpreter** (`.python-version`). Don't assume the initial Python version is 3.9; inspect what uv selected.
+- `uv python pin 3.12` — inspect changed pin; `requires-python` is unchanged.
+- Pin must satisfy `requires-python`. Only claim older-version compatibility if code and dependencies support it.
 - uv can download Python if needed.
 
 ## Declare / inspect
 
 - `uv add numpy` — watch resolution, `.venv` creation, installation.
-- `pyproject.toml`: declared requirements / allowed versions.
-- `uv.lock`: resolved choices across supported Python versions/platforms; don't edit.
-- Multiple NumPy versions may be locked; only the appropriate one is installed.
+- `pyproject.toml`: direct requirement and allowed versions.
+- `uv.lock`: exact resolved choices across supported Python versions/platforms; don't edit by hand.
+- Multiple NumPy versions **may** be locked; distinguish separate versions from multiple wheels for one version. Only the applicable distribution is installed locally.
 
 ## Isolate
 
@@ -37,7 +37,7 @@ orphan: true
 
 ## Execute
 
-- Replace `main.py`:
+- Replace starter `main.py`:
 
 ```python
 import numpy as np
@@ -50,28 +50,80 @@ def even(n):
 print(even(10))
 ```
 
-- `uv run python main.py` — ten even numbers: 0, 2, …, 18.
+- `uv run python main.py` — **the normal way to run commands in a uv project**: synchronize dependencies if needed, select the project interpreter, then execute. Ten even numbers: 0, 2, …, 18.
 
 ## Add / remove dependencies
 
-- `uv tree`
-- `uv add matplotlib`; `uv tree` — inspect project files and transitive packages.
-- NumPy remains direct, even though Matplotlib also requires it.
+- `uv tree` — initial tree with NumPy.
+- `uv add matplotlib`; `uv tree` — compare requirements, lockfile, transitive packages.
+- NumPy remains a direct dependency, even though Matplotlib also requires it.
 - `uv remove matplotlib`; `uv tree` — unused transitive packages disappear.
+- **Do not add plotting code**: Matplotlib is only a dependency-graph example.
 
 ## Reproduce
 
-- Delete **only this checkout's `.venv`** in VS Code; keep project files.
-- `uv run python main.py` — recreates environment, installs, runs.
-- `uv sync` — synchronize without running code.
-- `uv sync --locked` — fail if lockfile needs updating.
-- Cached packages explain speed; dependency reproduction ≠ identical numerical results.
+- Delete **only this checkout's `.venv`** in VS Code; retain `pyproject.toml` and `uv.lock`.
+- `uv run python main.py` — **automatically synchronizes**, recreates environment, then runs.
+- `uv sync` — synchronize explicitly, without running code.
+- `uv sync --locked` — fail if the lockfile needs updating.
+- Cached packages explain speed; dependency reproduction ≠ identical numerical results across hardware.
+
+## Package: start again as an installable library
+
+- **Transition:** We have reproduced an application. Now start afresh from the **same original commit**, but use the library template. We are **not converting** the first project.
+- Keep the application demo checkout intact. From its `sequence/` directory, create a second Git worktree and a new branch:
+
+```sh
+git worktree add -b lecture-03-library ../sequence-library 4195620
+cd ../sequence-library
+uv init --lib --name sequence
+```
+
+- `git worktree` gives us a separate working directory on a fresh branch of the **same GitHub repository**. The first demo's uncommitted work is not lost.
+- `--name sequence` matters because the new directory is named `sequence-library`: the **distribution and import package** should still be called `sequence`.
+- Inspect the generated `pyproject.toml`, `.python-version`, `README.md`, and `src/sequence/__init__.py` (exact starter files may vary by uv version).
+- **What is new with `--lib`?** `src/sequence/` holds importable code; `[build-system]` configures a build backend; the project itself can be installed. There is no need for a standalone `main.py`.
+- Inspect the actual generated `[build-system]`. Current uv uses `uv_build`, e.g.:
+
+```toml
+[build-system]
+requires = ["uv_build>=0.11.25,<0.12.0"]
+build-backend = "uv_build"
+```
+
+- **Do not overwrite** the generated version constraint or replace `uv_build` with Hatchling. `uv_build` is a standard PEP 517 build backend, distinct from the `uv` CLI. `requires` here means **build** dependencies, not runtime dependencies.
+- `uv add numpy` — inspect NumPy under `[project].dependencies` and changes to `uv.lock`.
+- Replace `src/sequence/__init__.py` with:
+
+```python
+import numpy as np
+
+
+def even(n):
+    return 2 * np.arange(n)
+```
+
+- `uv sync` — installs the project in editable mode, along with NumPy.
+- `uv run python -c "from sequence import even; print(even(10))"` — expected output: `[ 0  2  4  6  8 10 12 14 16 18]`.
+- **Portable installation:** in a separate environment, another user can run `pip install .` from a clone. `pip` uses `[build-system]` and installs runtime requirements, but does **not** use `uv.lock` or install dev dependencies.
+- Installable from source ≠ published on PyPI; publishing comes later.
+
+## Development dependencies / bridge to next lecture
+
+- Runtime: NumPy; development: Sphinx for next week's documentation.
+- `uv add --dev sphinx`; inspect `[dependency-groups]` → `dev`.
+- `uv tree` — Sphinx's transitive dependencies.
+- `uv run` / `uv sync` include `dev` by default; `--no-dev` excludes it.
+- Package users don't need Sphinx; **no Sphinx setup/build today**.
 
 ## Share / finish
 
-- README: install uv, then `uv run python main.py`.
-- Commit: code, README, `.gitignore`, `pyproject.toml`, `uv.lock`, `.python-version`.
-- Ignore: `.venv`, caches, generated outputs.
-- `git status`; `git diff`; commit, push branch, open PR.
-- Recap: **declare → isolate → execute → reproduce**.
-- Return to semantic-versioning slide.
+- README: `pip install .` in a user's own environment; import `even`.
+  Development: install uv, then `uv run python -c "from sequence import even; print(even(10))"`.
+- Commit code, README, `.gitignore`, `pyproject.toml`, `uv.lock`, `.python-version`.
+- Ignore `.venv`, caches, build outputs.
+- `git status`; `git diff`.
+- `git add -A` — inspect staged changes; ensure `.venv` is ignored.
+- `git commit -m "Initialize installable sequence library"`
+- Optional: `git push -u origin lecture-03-library`; open PR.
+- **Return to slides at “Does developing with uv mean everyone must use uv?”**

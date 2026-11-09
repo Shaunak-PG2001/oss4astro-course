@@ -24,3 +24,17 @@ final grade, with the final 40% coming from the project presentation.
   - raise an issue in your repository describing some change you would like to make (keep it simple!)
   - invite a colleague from this class to address the issue,
   - to do this: fork your partner's repo, make the change, raise a PR
+
+## Python environments, dependencies & packaging
+
+- structure your project as an installable Python package,
+  - `uv init --lib` is the recommended starting point for a new project; equivalent tooling is welcome,
+- include standard build-system metadata (`[build-system]`) in `pyproject.toml`,
+- ensure a fresh clone can be installed with `pip install .`, independently of uv,
+- use `uv` (or an equivalent tool) to manage your project's Python environment and dependencies,
+- declare runtime dependencies in `pyproject.toml`,
+  - distinguish them from development dependencies (e.g. documentation and testing tools),
+- commit a lockfile (`uv.lock` or equivalent) for reproducible development,
+- do not commit your virtual environment (`.venv`) to Git,
+- document installation and execution in the README,
+  - a colleague should be able to install the package from a fresh clone and run your code using these instructions.
